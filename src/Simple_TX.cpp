@@ -481,9 +481,13 @@ void OutputTask( void * pvParameters ){
               local_info.bad_pkts,
               local_info.good_pkts);
     } //end idle screen
-    else {
+   else if (entered <= -10) { //click on mainmenu item to select option
+        //db_out.printf("main select option\n");
+        Oled::selectOptionMainMenu();
+
+    } else if (entered >= 0) {
       Oled::setSubMenuItems();
-    }
+    } 
   } // end main loop for
 } // end output task
   

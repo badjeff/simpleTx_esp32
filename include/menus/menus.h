@@ -7,6 +7,7 @@ static uint8_t next_chunk;
 //setup menus
 int selected = 0;
 int subSelected = -1;
+int mmOptionSelected = -1;
 int entered = -1; //-2 idle // -1 main menu // 0 options/submenu
 bool menu_loaded = false;
 
