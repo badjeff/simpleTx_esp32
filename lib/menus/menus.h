@@ -1,16 +1,48 @@
+#include "crsf_protocol.h"
+
+enum data_type {
+    UINT8          = 0,
+    INT8           = 1,
+    UINT16         = 2,
+    INT16          = 3,
+    FLOAT          = 8,
+    TEXT_SELECTION = 9,
+    STRING         = 10,
+    FOLDER         = 11,
+    INFO           = 12,
+    COMMAND        = 13,
+    OUT_OF_RANGE   = 127,
+};
 
 
-static uint8_t params_loaded;     // if not zero, number received so far for current device
-static uint8_t next_param;   // parameter and chunk currently being read
-static uint8_t next_chunk;
 
-//setup menus
-int selected = 0;
-int subSelected = -1;
-int mmOptionSelected = -1;
-int entered = -1; //-2 idle // -1 main menu // 0 options/submenu
-bool menu_loaded = false;
-
+static void parse_bytes(enum data_type type, char **buffer, char *dest) {
+    switch (type) {
+    case UINT8:
+        *(uint8_t *)dest = (uint8_t) (*buffer)[0];
+        *buffer += 1;
+        break;
+    case INT8:
+        *(int8_t *)dest = (int8_t) (*buffer)[0];
+        *buffer += 1;
+        break;
+    case UINT16:
+        *(uint16_t *)dest = (uint16_t) (((*buffer)[0] << 8) | (*buffer)[1]);
+        *buffer += 2;
+        break;
+    case INT16:
+        *(int16_t *)dest = (int16_t) (((*buffer)[0] << 8) | (*buffer)[1]);
+        *buffer += 2;
+        break;
+    case FLOAT:
+        *(int32_t *)dest = (int32_t) (((*buffer)[0] << 24) | ((*buffer)[1] << 16)
+                     |        ((*buffer)[2] << 8)  |  (*buffer)[3]);
+        *buffer += 4;
+        break;
+    default:
+        break;
+    }
+}
 
 class Menu {
 
@@ -44,9 +76,9 @@ class Menu {
         void displayInfo()
 		{			
             if (name) {
-                db_out.printf("%u:%s:%u:%u:%u:%u:%u\n",
-                                id,name,parent,p_type,hidden,max_value,status);
-                if (max_value) {
+               // db_out.printf("%u:%s:%u:%u:%u:%u:%u\n",
+                 //               id,name,parent,p_type,hidden,max_value,status);
+              /*   if (max_value) {
                     for (size_t i = 0; i <= max_value; i++)
                     {
                         db_out.printf("%s:",
@@ -59,7 +91,7 @@ class Menu {
                 if (p_type == 12) db_out.printf(" :: INFO");
                 if (p_type == 13) db_out.printf(" :: CMD");  
 
-                db_out.printf("\n"); 
+                db_out.printf("\n"); */ 
             }
         }
 
@@ -141,4 +173,7 @@ class Menu {
 		}
 };
 
-Menu menuItems[CRSF_MAX_PARAMS];
+
+extern Menu menuItems[];
+
+static void parse_bytes(enum data_type type, char **buffer, char *dest);

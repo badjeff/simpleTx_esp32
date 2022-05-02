@@ -1,3 +1,17 @@
+#include "Arduino.h"
+#include "rotary_encoder.h"
+
+ 
+int rotary_encoder_last_pos = 0;
+
+ void setup_encoder() {
+    
+    ESP32Encoder::useInternalWeakPullResistors=UP;
+
+    encoder.attachSingleEdge(12, 4);
+
+}
+
 uint8_t getRE_POS() {
     
     //delay(100);
@@ -16,3 +30,4 @@ uint8_t getRE_POS() {
 
 return out;
 }
+

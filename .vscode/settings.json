@@ -18,7 +18,8 @@
         "array": "cpp",
         "utility": "cpp",
         "system_error": "cpp",
-        "crsf.c": "cpp"
+        "crsf.c": "cpp",
+        "halfduplex cpp": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

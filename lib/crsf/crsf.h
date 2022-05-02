@@ -15,6 +15,10 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ #include "Arduino.h"
+#include "crsf_protocol.h"
+
+
  
  // Basic setup
 #define CRSF_MAX_CHANNEL 16
@@ -98,6 +102,7 @@
 
 #define CRSF_MAX_PACKET_LEN            64
 
+#define CRSF_MAX_PARAMS  55   // one extra required, max observed is 47 in Diversity Nano RX
 
 
 #define CRSF_MAX_CHUNK_SIZE   58   // 64 - header - type - destination - origin
@@ -105,3 +110,33 @@
 
 #define SEND_MSG_BUF_SIZE  64      // don't send more than one chunk
 #define ADDR_BROADCAST  0x00  //  Broadcast address
+
+
+extern uint8_t next_param;   // parameter and chunk currently being read
+extern uint8_t next_chunk;
+extern uint8_t crsfCmdPacket[CRSF_CMD_PACKET_SIZE];
+extern uint8_t crsfSetIdPacket[LinkStatisticsFrameLength];
+
+
+extern uint8_t SerialInBuffer[CRSF_MAX_PACKET_LEN];
+
+uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
+
+void crsfPreparePacket(uint8_t packet[], int channels[]);
+void buildElrsPacket(uint8_t packetCmd[],uint8_t command, uint8_t value);
+void buildElrsPingPacket(uint8_t packetCmd[]);
+void CRSF_read_param(uint8_t packetCmd[],uint8_t id,uint8_t chunk);
+void CRSF_get_elrs(uint8_t packetCmd[]);
+void CRSF_sendId(uint8_t packetCmd[],uint8_t modelId );
+void elrsWrite(uint8_t crsfPacket[],uint8_t size,int32_t add_delay);
+uint8_t getCrossfireTelemetryValue(uint8_t index, int32_t *value, uint8_t len);
+uint32_t parse_u32(const uint8_t *buffer);
+void add_device(uint8_t *buffer);
+void parse_elrs_info(uint8_t *buffer);
+
+void CRSF_serial_rcv(uint8_t *buffer, uint8_t num_bytes);
+void serialEvent();
+void CRSF_ping_devices();
+
+void add_param(uint8_t *buffer, uint8_t num_bytes);
+

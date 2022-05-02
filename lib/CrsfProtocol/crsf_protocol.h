@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cmath>
+
 //#include "crc.h"
 //#include "options.h"
 
@@ -418,12 +419,7 @@ typedef struct {
     char flag_info[CRSF_MAX_NAME_LEN];
 } elrs_info_t;
 
-static struct {
-    crsf_param_t *param;
-    uint32_t time;
-    uint16_t timeout;
-    uint8_t  dialog;
-} command;
+
 
 enum cmd_status {
     READY               = 0,
@@ -434,3 +430,37 @@ enum cmd_status {
     CMD_CANCEL          = 5,
     POLL                = 6
 };
+
+
+
+
+
+
+#define CRSF_MAX_DEVICES       4
+#define CRSF_MAX_NAME_LEN      16
+#define CRSF_MAX_STRING_BYTES  2500     // max observed is 2010 in Nano RX
+#define CRSF_STRING_BYTES_AVAIL(current)  (CRSF_MAX_STRING_BYTES-((char *)(current)-mp->strings))
+
+struct crsfconfig_page {
+    char strings[CRSF_MAX_STRING_BYTES];
+
+};
+struct crsfdevice_page {
+    char strings[CRSF_MAX_STRING_BYTES];
+};
+
+
+
+typedef struct {
+    uint8_t address;
+    uint8_t number_of_params;
+    uint8_t params_version;
+    uint32_t serial_number;
+    uint32_t hardware_id;
+    uint32_t firmware_id;
+    char name[CRSF_MAX_NAME_LEN];
+} crsf_device_t;
+
+
+
+

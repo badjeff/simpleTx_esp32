@@ -13,14 +13,7 @@ const int DIGITAL_PIN_SWITCH_AUX2 = 2;  //
 
 //pin for button : testing bt
 const int DigitalInPinPowerChange = 15;  // 
-//button bouncer
-int testButtonPressed=0;
-bool powerChangeHasRun = false;
 
-///const int upBt = 12;
-//const int downBt = 4;
-const int enterBt = 0;
-const int backBt = 5;
 
 
 //pins that used for output
@@ -33,3 +26,5 @@ const int DIGITAL_PIN_BUZZER = 12;  //
  // Define battery warning voltage
  const float WARNING_VOLTAGE=7.2; //2S Lipo
 
+
+void initGpio ();

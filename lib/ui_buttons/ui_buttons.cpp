@@ -1,10 +1,15 @@
 
-#include "rotary_encoder/rotary_encoder.cpp"
+#include "ui_buttons.h"
+#include "rotary_encoder.h"
+#include "crsf_protocol.h"
+#include "menus.h"
+#include "config.h"
 
 
-void read_ui_buttons () {
+
+
+void read_ui_buttons (uint8_t next_param,uint8_t next_chunk) {
     
-
     bool up = false; //digitalRead(upBt);
     bool down = false;// digitalRead(downBt);
     bool enter = digitalRead(enterBt);
@@ -52,54 +57,20 @@ void read_ui_buttons () {
       } while (menuItems[selected].parent != 0); 
 
       if ((enter == LOW)) {
-        db_out.printf("click:%i:%i:%s:%u:%u\n",
-        selected,
-        menuItems[selected].parent,
-        menuItems[selected].name,
-        menuItems[selected].status,
-        menuItems[selected].max_value
-        );
-
-        if ((menuItems[selected].p_type == 9) 
-            || ((menuItems[selected].p_type == 13))) {
-        db_out.printf("find:%i:%s:%u:%u\n",
-        selected,
-        menuItems[selected].name,
-        menuItems[selected].status,
-        menuItems[selected].max_value);
-        //params_loaded = 0;
-        entered = -10;
-        mmOptionSelected = menuItems[selected].status;
-
-        //Oled::selectOptionMainMenu();
-
-        /* if (menuItems[selected].status < menuItems[selected].max_value) {
-          next_chunk = menuItems[selected].status + 1;
-           } else next_chunk = 0;
-
-        next_param = menuItems[selected].id;
-        if (menuItems[selected].p_type == 13) next_chunk = 4; //cmd 
-
-        //next_chunk == cmd to send
-        Menu::ChangeParam(next_param,next_chunk); */
-        
-
+        if ((menuItems[selected].p_type == 9) || ((menuItems[selected].p_type == 13))) {
+          entered = -10;
+          mmOptionSelected = menuItems[selected].status;
         } else {
-            db_out.printf("not find:%i:%s\n",
-                selected,
-                menuItems[selected].name);
-
-            subSelected = selected+1;
-            entered = selected;
+          subSelected = selected+1;
+          entered = selected;
         }
       }
       if (back == LOW) entered = -2;
-
     //if at submenu
     } else if (entered == -10) {
-        //db_out.printf("select options: %i:%i:%i\n",mmOptionSelected,up,back);
-        if (down == 1) {
-          //entered = -1;
+    //db_out.printf("select options: %i:%i:%i\n",mmOptionSelected,up,back);
+      if (down == 1) {
+        //entered = -1;
           if (mmOptionSelected < menuItems[selected].max_value)
             mmOptionSelected++;
           else
@@ -115,7 +86,7 @@ void read_ui_buttons () {
 
       if (back == LOW) entered = -1;
       if (enter == LOW) {
-        db_out.printf("select option %u:%u",mmOptionSelected,selected);
+        //db_out.printf("select option %u:%u",mmOptionSelected,selected);
         next_param = selected+1;
         next_chunk = mmOptionSelected;
         Menu::ChangeParam(next_param,next_chunk);
@@ -133,15 +104,6 @@ void read_ui_buttons () {
           next_chunk = menuItems[subSelected].status + 1;
            } else next_chunk = 0;
 
-        db_out.printf("send cmd submenu \n %i:%i:%u:%u:%u:type:%u:%u\n",
-              selected,
-              subSelected,
-              menuItems[subSelected].id,
-              menuItems[subSelected].max_value,
-              menuItems[subSelected].status,
-              menuItems[subSelected].p_type,
-              next_chunk);
-        
               
         if (menuItems[subSelected].p_type == 13) next_chunk = 4; //cmd 
         Menu::ChangeParam(next_param,next_chunk);
@@ -163,12 +125,6 @@ void read_ui_buttons () {
 
   }
 
-
-    //db_out.printf("ent:%i:sel:%isSel:%i\n",entered, selected,subSelected);
-    
-    //powerChangeHasRun=true;
-    //clickCurrentMicros = crsfTime + (2*1000000);//2sec
-    //delay(200);
     delay(100);
 
 }

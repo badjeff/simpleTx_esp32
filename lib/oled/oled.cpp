@@ -1,8 +1,12 @@
 #include "Arduino.h"
 #include "oled.h"
 #include "xbmStrings.h"
+#include "menus.h"
+#include "crsf_protocol.h"
 
 #define DEBUG
+
+crsf_device_t crsf_devices[CRSF_MAX_DEVICES];
 
 
 void Oled::PrintCenter(uint8_t y,char *tmp) {
@@ -25,7 +29,7 @@ void Oled::PrintRight(uint8_t y,char *tmp) {
 
 void Oled::init() {
     #if defined(DEBUG) 
-        db_out.printf("starting screen..."); 
+      //  db_out.printf("starting screen..."); 
     #endif
 
     display.begin();
@@ -73,7 +77,7 @@ void Oled::setMainScreen(char *name, crsfLinkStatistics_t LinkStatistics,uint8_t
 
     display.setFont(u8g2_font_10x20_mr);
     display.setCursor(0,35);    
-    float vBat = (float)batteryVoltage.voltage/10;
+    float vBat = 5;//(float)batteryVoltage.voltage/10;
     display.print(vBat,2);  
     display.setFont(u8g2_font_5x7_mr);
      
@@ -82,7 +86,7 @@ void Oled::setMainScreen(char *name, crsfLinkStatistics_t LinkStatistics,uint8_t
 
 }
 
-void Oled::setSubMenuItems() {
+void Oled::setSubMenuItems(int selected, int subSelected) {
     //db_out.printf("Subscreen\n"));
     display.clearBuffer(); 
     display.setFont(u8g2_font_profont11_tr);
@@ -137,7 +141,7 @@ void Oled::setSubMenuItems() {
 
 
 
-void Oled::setMainMenuItems() {
+void Oled::setMainMenuItems(int selected) {
     /* db_out.printf("Mainsreen: %s:%i:%s\n",
         menuItems[selected].name,
         menuItems[selected].status,
@@ -217,7 +221,7 @@ void Oled::println(char *tmp) {
     display.print(tmp);
 }
 
-void Oled::selectOptionMainMenu() {
+void Oled::selectOptionMainMenu(int selected, int mmOptionSelected) {
     //db_out.printf("selectOptionMainMenu\n");
       /* db_out.printf("Mainsreen: %s:%i:%s\n",
         menuItems[selected].name,
