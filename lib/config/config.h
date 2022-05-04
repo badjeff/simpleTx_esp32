@@ -22,50 +22,26 @@
 
 
  */
+#pragma once
+
 #include "crsf_protocol.h"
 
-uint8_t device_idx;   // current device index
-crsfPayloadLinkstatistics_s LinkStatistics; // Link Statisitics Stored as Struct
-char *recv_param_ptr;
 
-uint8_t count_params_loaded();
 
-extern crsf_device_t crsf_devices[];
 
-extern elrs_info_t local_info;
+extern int Aileron_value;        // values read from the pot 
+extern int Elevator_value; 
+extern int Throttle_value;
+extern int Rudder_value; 
 
-extern elrs_info_t elrs_info;
-
-typedef enum {
-    MODULE_UNKNOWN,
-    MODULE_ELRS,
-    MODULE_OTHER,
-} module_type_t;
-
-uint8_t protocol_module_is_elrs();
-extern module_type_t module_type;
-#define MODULE_IS_ELRS     (module_type == MODULE_ELRS)
-#define MODULE_IS_UNKNOWN  (module_type == MODULE_UNKNOWN)
-
-int Aileron_value = 0;        // values read from the pot 
-int Elevator_value = 0; 
-int Throttle_value=0;
-int Rudder_value = 0; 
-
-int Arm = 0;        // switch values read from the digital pin
-int FlightMode = 0; 
+extern int Arm;        // switch values read from the digital pin
+extern int FlightMode; 
 
  // Define RC input Offset
-int Aileron_OFFSET = 0;        // values read from the pot 
-int Elevator_OFFSET  = 0; 
-int Throttle_OFFSET =0;
-int Rudder_OFFSET  = 0; 
-
-extern uint8_t next_param;   // parameter and chunk currently being read
-
-void sync_crsf(int32_t add);
-void serialEvent();
-
+extern int Aileron_OFFSET;        // values read from the pot 
+extern int Elevator_OFFSET; 
+extern int Throttle_OFFSET;
+extern int Rudder_OFFSET; 
 
 
 //NUM_TRIM_ELEMS + NUM_BOX_ELEMS + NUM_BAR_ELEMS + NUM_TOGGLE_ELEMS
@@ -76,7 +52,7 @@ void serialEvent();
 
 
 //button bouncer
-int testButtonPressed=0;
+extern int testButtonPressed;
 extern bool powerChangeHasRun;
 
 
@@ -86,27 +62,10 @@ extern bool powerChangeHasRun;
                              //Maybe move this to target_defs.h
 extern char tempstring[TEMPSTRINGLENGTH];
 
+
 static const char *hdr_str_cb(const void *data);
+uint8_t count_params_loaded();
 
 
 static void crsfdevice_init();
 void bt_handle(uint8_t value);
-
-static uint32_t crsfTime;
-
-class Config {
-
-public:
-    //elrs timing
-    // for calculate main loop time to sync with elrs tx module
-    uint32_t lastCrsfTime;
-    uint32_t updateInterval=0;
-    int32_t correction;
-
-    uint8_t params_loaded;     // if not zero, number received so far for current device
-
-    void qsd();
-};
-
-
-extern Config config;

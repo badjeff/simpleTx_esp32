@@ -51,7 +51,34 @@
 #include "crsf_protocol.h"
 #include "menus.h"
 
+HardwareSerial db_out(0);
+HardwareSerial elrs(1);
+
 char recv_param_buffer[CRSF_MAX_CHUNKS * CRSF_MAX_CHUNK_SIZE];
+
+uint32_t crsfTime = 0;
+uint32_t lastCrsfTime = 0;
+uint32_t updateInterval = CRSF_TIME_BETWEEN_FRAMES_US;
+int32_t correction = 0;
+
+uint8_t next_param = 0;   // parameter and chunk currently being read
+uint8_t next_chunk = 0;
+uint8_t crsfCmdPacket[CRSF_CMD_PACKET_SIZE];
+uint8_t crsfSetIdPacket[LinkStatisticsFrameLength];
+
+uint8_t params_loaded = 0;     // if not zero, number received so far for current device
+
+uint8_t SerialInBuffer[CRSF_MAX_PACKET_LEN];
+
+uint8_t device_idx;   // current device index
+crsfPayloadLinkstatistics_s LinkStatistics; // Link Statisitics Stored as Struct
+char *recv_param_ptr;
+
+crsf_device_t crsf_devices[CRSF_MAX_DEVICES];
+
+elrs_info_t local_info;
+
+elrs_info_t elrs_info;
 
 /*******************************
   Crossfire
@@ -86,7 +113,6 @@ typedef enum {
 
 
 
-HardwareSerial elrs(1);
 
 /// UART Handling ///
 volatile uint8_t SerialInPacketLen = 0; // length of the CRSF packet as measured
@@ -96,6 +122,7 @@ volatile bool CRSFframeActive = false; //since we get a copy of the serial data 
 static volatile crsf_sensor_battery_s batteryVoltage;
 
 //portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
+
 
 
 
@@ -250,10 +277,6 @@ void CRSF_sendId(uint8_t packetCmd[],uint8_t modelId ) {
 
 
 
-uint32_t crsfTime = 0;
-uint32_t lastCrsfTime = 0;
-uint32_t updateInterval = CRSF_TIME_BETWEEN_FRAMES_US;
-int32_t correction = 0;
 
 static uint32_t get_update_interval() {
     if (correction == 0) return updateInterval;
@@ -328,11 +351,12 @@ uint32_t parse_u32(const uint8_t *buffer) {
     return (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
 }
 
-void protocol_module_type(module_type_t type);
 
 void protocol_module_type(module_type_t type) {
     module_type = type;
 };
+
+
 uint8_t protocol_module_is_elrs() { return MODULE_IS_ELRS; }
 
 

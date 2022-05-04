@@ -3,10 +3,10 @@
 #include "xbmStrings.h"
 #include "menus.h"
 #include "crsf_protocol.h"
+#include "crsf.h"
 
 #define DEBUG
 
-crsf_device_t crsf_devices[CRSF_MAX_DEVICES];
 
 
 void Oled::PrintCenter(uint8_t y,char *tmp) {

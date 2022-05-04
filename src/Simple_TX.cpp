@@ -45,20 +45,16 @@
 #include "oled.h"
 #include "gpio.h" 
 
-/* 
-#include "led.h"
-#include "tlm.h"
-#include "gpio.h" */
-//#include "menus.h"
 
-//Oled oled;
+//#include "led.h"
 
+Oled oled;
 
+Menu menu;
 
 
 char tempstring[TEMPSTRINGLENGTH];
 
-HardwareSerial db_out(0);
 
 
 
@@ -72,14 +68,26 @@ uint32_t clickCurrentMicros = 0;
 uint8_t crsfPacket[CRSF_PACKET_SIZE];
 int rcChannels[CRSF_MAX_CHANNEL];
 
+// values read from the sticks pots
+int Aileron_value = 0;        
+int Elevator_value = 0; 
+int Throttle_value=0;
+int Rudder_value = 0; 
 
+int Arm = 0;        // switch values read from the digital pin
+int FlightMode = 0; 
 
-Menu menu;
-Oled oled;
+ // Define RC input Offset
+int Aileron_OFFSET = 0;        // offset values read from the pot 
+int Elevator_OFFSET = 0; 
+int Throttle_OFFSET = 0;
+int Rudder_OFFSET = 0; 
 
-
+int testButtonPressed = 0;
+bool powerChangeHasRun = false;
 
 #define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+
 
 
 
@@ -104,9 +112,6 @@ crsf_device_t radio = {
 
 
 
-
-
-
 void OutputTask( void * pvParameters ){
  // oled.init();
 
@@ -115,7 +120,7 @@ void OutputTask( void * pvParameters ){
     //delay(50);
      if ((MODULE_IS_ELRS)&&(local_info.good_pkts==0)) {
       CRSF_get_elrs(crsfCmdPacket);
-      elrsWrite(crsfCmdPacket,sizeof(crsfCmdPacket),0);
+      elrsWrite(crsfCmdPacket,8,0);
     } 
     
     if (entered == -1) {
@@ -326,7 +331,7 @@ uint8_t count_params_loaded() {
 }
 
 
-static const char *hdr_str_cb(const void *data) {
+const char *hdr_str_cb(const void *data) {
     
     (void)data;
      //   db_out.printf("call params: %u: %i\n",count_params_loaded(), device_idx);

@@ -15,10 +15,14 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- #include "Arduino.h"
+#pragma once
+
+#include "Arduino.h"
 #include "crsf_protocol.h"
 
 
+extern HardwareSerial db_out;
+extern HardwareSerial elrs;
  
  // Basic setup
 #define CRSF_MAX_CHANNEL 16
@@ -111,14 +115,31 @@
 #define SEND_MSG_BUF_SIZE  64      // don't send more than one chunk
 #define ADDR_BROADCAST  0x00  //  Broadcast address
 
+extern uint32_t crsfTime;
+extern uint32_t lastCrsfTime;
+extern uint32_t updateInterval;
+extern int32_t correction;
 
 extern uint8_t next_param;   // parameter and chunk currently being read
 extern uint8_t next_chunk;
-extern uint8_t crsfCmdPacket[CRSF_CMD_PACKET_SIZE];
-extern uint8_t crsfSetIdPacket[LinkStatisticsFrameLength];
+extern uint8_t crsfCmdPacket[];
+extern uint8_t crsfSetIdPacket[];
+
+extern uint8_t params_loaded;     // if not zero, number received so far for current device
+
+extern uint8_t SerialInBuffer[];
+
+extern uint8_t device_idx;   // current device index
+extern crsfPayloadLinkstatistics_s LinkStatistics; // Link Statisitics Stored as Struct
+extern char *recv_param_ptr;
 
 
-extern uint8_t SerialInBuffer[CRSF_MAX_PACKET_LEN];
+
+extern crsf_device_t crsf_devices[];
+
+extern elrs_info_t local_info;
+
+extern elrs_info_t elrs_info;
 
 uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
 
@@ -140,3 +161,19 @@ void CRSF_ping_devices();
 
 void add_param(uint8_t *buffer, uint8_t num_bytes);
 
+
+
+
+
+
+typedef enum {
+    MODULE_UNKNOWN,
+    MODULE_ELRS,
+    MODULE_OTHER,
+} module_type_t;
+
+uint8_t protocol_module_is_elrs();
+
+extern module_type_t module_type;
+
+void protocol_module_type(module_type_t type);

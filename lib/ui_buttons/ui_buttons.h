@@ -3,17 +3,17 @@
   #ifndef UI_BUTTONS_H
       #define UI_BUTTONS_H
       
-///const int upBt = 12;
-//const int downBt = 4;
+const int upBt = 12;
+const int downBt = 4;
 const int enterBt = 0;
 const int backBt = 5;
 
 //setup menus
-static int selected = 0;
-static int subSelected = -1;
-static int mmOptionSelected = -1;
-static int entered = -1; //-2 idle // -1 main menu // 0 options/submenu
-static bool menu_loaded = false;
+extern int selected;
+extern int subSelected;
+extern int mmOptionSelected;
+extern int entered; //-2 idle // -1 main menu // 0 options/submenu
+extern bool menu_loaded;
 
 
 

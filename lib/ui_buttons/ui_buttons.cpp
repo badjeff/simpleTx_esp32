@@ -1,17 +1,22 @@
 
 #include "ui_buttons.h"
-#include "rotary_encoder.h"
 #include "crsf_protocol.h"
 #include "menus.h"
 #include "config.h"
+#include "crsf.h"
 
 
 
+int selected = 0;
+int subSelected = -1;
+int mmOptionSelected = -1;
+int entered = -1; //-2 idle // -1 main menu // 0 options/submenu
+bool menu_loaded = false;
 
 void read_ui_buttons (uint8_t next_param,uint8_t next_chunk) {
     
-    bool up = false; //digitalRead(upBt);
-    bool down = false;// digitalRead(downBt);
+    bool up = digitalRead(upBt);
+    bool down =  digitalRead(downBt);
     bool enter = digitalRead(enterBt);
     bool back = digitalRead(backBt);
     //TODO bt bouncer
@@ -19,15 +24,6 @@ void read_ui_buttons (uint8_t next_param,uint8_t next_chunk) {
     //db_out.printf("%i:%i::%u\n",enter,back,getRE_POS());
    // db_out.printf("%i:%i:%i:\n",selected,subSelected,entered);
     
-    uint8_t tmp = getRE_POS(); 
-
-    if (tmp==1) up = 1;
-    else if (tmp==2) down = 1;
-    else {
-      up = 0;
-      down = 0;
-    }
-
     if (up == LOW && down == LOW) {
     };
     

@@ -12,11 +12,10 @@
 #include "oled.h"
 #include "ui_buttons.h"
 
-uint8_t crsfCmdPacket[CRSF_CMD_PACKET_SIZE];
+Menu menuItems[CRSF_MAX_PARAMS];
+
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C display(U8G2_R0,U8X8_PIN_NONE,22,21);
-
-
 
 void Menu::ChangeParam(uint8_t param, uint8_t cmd){
   //db_out.printf("ChangeParam: %s\n",menuItems[selected].name);
