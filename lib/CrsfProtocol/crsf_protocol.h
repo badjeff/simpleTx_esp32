@@ -6,9 +6,6 @@
 //#include "crc.h"
 //#include "options.h"
 
-#define MODULE_IS_ELRS     (module_type == MODULE_ELRS)
-#define MODULE_IS_UNKNOWN  (module_type == MODULE_UNKNOWN)
-
 #define CRSF_TX_MODULE 1
 
 #define PACKED __attribute__((packed))

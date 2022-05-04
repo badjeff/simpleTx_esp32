@@ -29,7 +29,7 @@ void Oled::PrintRight(uint8_t y,char *tmp) {
 
 void Oled::init() {
     #if defined(DEBUG) 
-      //  db_out.printf("starting screen..."); 
+    db_out.printf("starting screen...\n"); 
     #endif
 
     display.begin();

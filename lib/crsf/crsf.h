@@ -21,8 +21,25 @@
 #include "crsf_protocol.h"
 
 
+#define GPIO_PIN_RCSIGNAL_TX 13
+#define GPIO_PIN_RCSIGNAL_RX 13
+
+void ICACHE_RAM_ATTR duplex_set_RX();
+void ICACHE_RAM_ATTR duplex_set_TX();
+
 extern HardwareSerial db_out;
 extern HardwareSerial elrs;
+
+
+typedef enum {
+    MODULE_UNKNOWN,
+    MODULE_ELRS,
+    MODULE_OTHER,
+} module_type_t;
+
+static module_type_t module_type;
+
+uint8_t protocol_module_is_elrs();
  
  // Basic setup
 #define CRSF_MAX_CHANNEL 16
@@ -131,7 +148,6 @@ extern uint8_t SerialInBuffer[];
 
 extern uint8_t device_idx;   // current device index
 extern crsfPayloadLinkstatistics_s LinkStatistics; // Link Statisitics Stored as Struct
-extern char *recv_param_ptr;
 
 
 
@@ -140,6 +156,13 @@ extern crsf_device_t crsf_devices[];
 extern elrs_info_t local_info;
 
 extern elrs_info_t elrs_info;
+
+
+extern char recv_param_buffer[];
+extern char *recv_param_ptr;
+
+
+
 
 uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
 
@@ -161,19 +184,15 @@ void CRSF_ping_devices();
 
 void add_param(uint8_t *buffer, uint8_t num_bytes);
 
+uint8_t count_params_loaded();
+
+
+
+#define MODULE_IS_ELRS     (module_type == MODULE_ELRS)
+#define MODULE_IS_UNKNOWN  (module_type == MODULE_UNKNOWN)
 
 
 
 
-
-typedef enum {
-    MODULE_UNKNOWN,
-    MODULE_ELRS,
-    MODULE_OTHER,
-} module_type_t;
-
-uint8_t protocol_module_is_elrs();
-
-extern module_type_t module_type;
 
 void protocol_module_type(module_type_t type);

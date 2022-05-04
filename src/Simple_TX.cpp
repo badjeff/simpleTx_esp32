@@ -63,7 +63,6 @@ TaskHandle_t outputTaskHandler;
 
 
 //click deboucer
-uint32_t clickCurrentMicros = 0;
 
 uint8_t crsfPacket[CRSF_PACKET_SIZE];
 int rcChannels[CRSF_MAX_CHANNEL];
@@ -86,7 +85,10 @@ int Rudder_OFFSET = 0;
 int testButtonPressed = 0;
 bool powerChangeHasRun = false;
 
-#define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+//#define constrain(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+
+//#define MIN(a, b) ((a) < (b) ? a : b)
+
 
 
 
@@ -113,11 +115,11 @@ crsf_device_t radio = {
 
 
 void OutputTask( void * pvParameters ){
- // oled.init();
+  oled.init();
 
   for(;;){
     read_ui_buttons(next_param,next_chunk);
-    //delay(50);
+    delay(50);
      if ((MODULE_IS_ELRS)&&(local_info.good_pkts==0)) {
       CRSF_get_elrs(crsfCmdPacket);
       elrsWrite(crsfCmdPacket,8,0);
@@ -163,41 +165,10 @@ void OutputTask( void * pvParameters ){
   } // end main loop for
 } // end output task
   
-void bt_handle(uint8_t value) {
-  db_out.println("bt_handle");
-  
-  powerChangeHasRun=true;   
-  clickCurrentMicros = crsfTime + 500000;//0.5sec
-  db_out.printf("times: %u:%u\n", clickCurrentMicros/1000, crsfTime/1000);
-  //powerChangeHasRun=true;
-  
-  //CRSF_read_param(crsfCmdPacket,1,next_chunk);
-  //elrsWrite(crsfCmdPacket,8,0);
-  
-  //buildElrsPingPacket(crsfCmdPacket);
-  //db_out.println(CRSF_send_model_id(2));
-  
-  //set modelId
-  //CRSF_sendId(crsfSetIdPacket,0);
-  //elrsWrite(crsfSetIdPacket,LinkStatisticsFrameLength);
-
-  //turn on rx wifi, even if missmatch modelId
-  //buildElrsPacket(crsfCmdPacket,16,1);
-
-  CRSF_read_param(crsfCmdPacket,1,next_chunk);
-  elrsWrite(crsfCmdPacket,8,200000);
-  //serialEvent();
-}
 
 
 
-static void crsfdevice_init() {
-    next_param = 1;
-    next_chunk = 0;
-    params_loaded = 0;
-    
-    //CBUF_Init(send_buf);
-}
+
 
 //Task2 - ELRS task - main loop
 void ElrsTask( void * pvParameters ){
@@ -244,7 +215,8 @@ void ElrsTask( void * pvParameters ){
     testButtonPressed = digitalRead(DigitalInPinPowerChange);
   
     if (currentMicros >= crsfTime) {
-        //db_out.printf("loop: %i %i :%u:%u \n",
+       // db_out.printf("loop: %i \n",crsfTime);
+        delay(4);
       if (powerChangeHasRun==true && clickCurrentMicros < currentMicros) 
       {
         //db_out.println("reset");
@@ -319,43 +291,6 @@ void loop() {
 
 
 
-#define MIN(a, b) ((a) < (b) ? a : b)
-
-uint8_t count_params_loaded() {
-    int i;
-    for (i=0; i < crsf_devices[0].number_of_params; i++) {
-        //db_out.printf("count_params_loaded: %i:%u\n",i,crsf_devices[0].number_of_params);
-        if (menuItems[i].id == 0) break;
-    }
-    return i;
-}
-
-
-const char *hdr_str_cb(const void *data) {
-    
-    (void)data;
-     //   db_out.printf("call params: %u: %i\n",count_params_loaded(), device_idx);
-
-    if (count_params_loaded() != crsf_devices[device_idx].number_of_params) {
-   //     db_out.printf("not all params: %u: %i\n",count_params_loaded(), device_idx);
-    
-        snprintf(tempstring, sizeof tempstring, "%s %s", crsf_devices[device_idx].name, "LOADING");
-    
-    } else if (protocol_module_is_elrs()) {
-        db_out.printf("idx_elrs: %i\n",device_idx);
-
-        snprintf(tempstring, sizeof tempstring, "%s  %d/%d  %c",
-                 crsf_devices[device_idx].name, elrs_info.bad_pkts, elrs_info.good_pkts,
-                 (elrs_info.flags & 1) ? 'C' : '-');
-    } else  {
-        db_out.printf("tx module \n not detected\n");
-        //return crsf_devices[device_idx].name;
-        snprintf(tempstring, sizeof tempstring, "%s  %d/%d  %c",
-                 crsf_devices[device_idx].name, elrs_info.bad_pkts, elrs_info.good_pkts,
-                 (elrs_info.flags & 1) ? 'C' : '-');
-    }
-    return tempstring;
-}
 
 
 // ESP32 Team900

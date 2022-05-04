@@ -19,3 +19,4 @@ class Oled {
     static void PrintRight(char *tmp);
     static void PrintRight(uint8_t y,char *tmp);
 };
+

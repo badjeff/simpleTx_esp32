@@ -10,7 +10,7 @@
 int selected = 0;
 int subSelected = -1;
 int mmOptionSelected = -1;
-int entered = -1; //-2 idle // -1 main menu // 0 options/submenu
+int entered = -2; //-2 idle // -1 main menu // 0 options/submenu
 bool menu_loaded = false;
 
 void read_ui_buttons (uint8_t next_param,uint8_t next_chunk) {
@@ -22,7 +22,7 @@ void read_ui_buttons (uint8_t next_param,uint8_t next_chunk) {
     //TODO bt bouncer
 
     //db_out.printf("%i:%i::%u\n",enter,back,getRE_POS());
-   // db_out.printf("%i:%i:%i:\n",selected,subSelected,entered);
+    //db_out.printf("%i:%i:%i:\n",selected,subSelected,entered);
     
     if (up == LOW && down == LOW) {
     };

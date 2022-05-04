@@ -47,14 +47,15 @@
 #include <stdint.h>
 
 #include "config.h"
-#include "halfduplex.h"
 #include "crsf_protocol.h"
 #include "menus.h"
+
 
 HardwareSerial db_out(0);
 HardwareSerial elrs(1);
 
 char recv_param_buffer[CRSF_MAX_CHUNKS * CRSF_MAX_CHUNK_SIZE];
+char *recv_param_ptr;
 
 uint32_t crsfTime = 0;
 uint32_t lastCrsfTime = 0;
@@ -72,7 +73,7 @@ uint8_t SerialInBuffer[CRSF_MAX_PACKET_LEN];
 
 uint8_t device_idx;   // current device index
 crsfPayloadLinkstatistics_s LinkStatistics; // Link Statisitics Stored as Struct
-char *recv_param_ptr;
+
 
 crsf_device_t crsf_devices[CRSF_MAX_DEVICES];
 
@@ -240,14 +241,15 @@ void buildElrsPingPacket(uint8_t packetCmd[])
 // Request parameter info from known device
 //void CRSF_read_param(u8 device, u8 id, u8 chunk) {
 void CRSF_read_param(uint8_t packetCmd[],uint8_t id,uint8_t chunk) {
-    packetCmd[0] = ADDR_MODULE;
-    packetCmd[1] = 6; // length of Command (4) + payload + crc
-    packetCmd[2] = TYPE_SETTINGS_READ;
-    packetCmd[3] = ELRS_ADDRESS;
-    packetCmd[4] = ADDR_RADIO;
-    packetCmd[5] = id;
-    packetCmd[6] = chunk;
-    packetCmd[7] = crsf_crc8(&packetCmd[2], packetCmd[1]-1);
+  db_out.println("CRSF_read_param");
+  packetCmd[0] = ADDR_MODULE;
+  packetCmd[1] = 6; // length of Command (4) + payload + crc
+  packetCmd[2] = TYPE_SETTINGS_READ;
+  packetCmd[3] = ELRS_ADDRESS;
+  packetCmd[4] = ADDR_RADIO;
+  packetCmd[5] = id;
+  packetCmd[6] = chunk;
+  packetCmd[7] = crsf_crc8(&packetCmd[2], packetCmd[1]-1);
 }
 // request ELRS_info message
 void CRSF_get_elrs(uint8_t packetCmd[])
@@ -302,42 +304,11 @@ void sync_crsf (int32_t add_delay) {
   lastCrsfTime = crsfTime; //set time that we send last packet
 }
 
-
-void ICACHE_RAM_ATTR duplex_set_RX()
-{
-#ifdef DEBUG_HALF_DUPLEX
-  db_out.printf("rx: %u\n",micros());
-#endif
-
-  portDISABLE_INTERRUPTS();
-    ESP_ERROR_CHECK(gpio_set_direction((gpio_num_t)GPIO_PIN_RCSIGNAL_RX, GPIO_MODE_INPUT));
-    gpio_matrix_in((gpio_num_t)GPIO_PIN_RCSIGNAL_RX, U1RXD_IN_IDX, false);
-    gpio_pullup_en((gpio_num_t)GPIO_PIN_RCSIGNAL_RX);
-    gpio_pulldown_dis((gpio_num_t)GPIO_PIN_RCSIGNAL_RX);
-  portENABLE_INTERRUPTS();
-}
-
-void ICACHE_RAM_ATTR duplex_set_TX()
-{
-#ifdef DEBUG_HALF_DUPLEX
-  db_out.printf("tx: %u\n",micros());
-#endif
-
-  portDISABLE_INTERRUPTS();
-    ESP_ERROR_CHECK(gpio_set_pull_mode((gpio_num_t)GPIO_PIN_RCSIGNAL_TX, GPIO_FLOATING));
-    ESP_ERROR_CHECK(gpio_set_pull_mode((gpio_num_t)GPIO_PIN_RCSIGNAL_RX, GPIO_FLOATING));
-
-    ESP_ERROR_CHECK(gpio_set_level((gpio_num_t)GPIO_PIN_RCSIGNAL_TX, 1));
-    ESP_ERROR_CHECK(gpio_set_direction((gpio_num_t)GPIO_PIN_RCSIGNAL_TX, GPIO_MODE_OUTPUT));
-    constexpr uint8_t MATRIX_DETACH_IN_HIGH = 0x38; // routes 1 to matrix slot
-    gpio_matrix_in(MATRIX_DETACH_IN_HIGH, U1RXD_IN_IDX, false); // Disconnect RX from all pads
-    gpio_matrix_out((gpio_num_t)GPIO_PIN_RCSIGNAL_TX, U1TXD_OUT_IDX, false, false);
-  portENABLE_INTERRUPTS();
-}
-
-
 void  elrsWrite (uint8_t crsfPacket[],uint8_t size,int32_t add_delay) {
-  //duplex_set_RX();
+  if (crsfPacket[2] != TYPE_CHANNELS) db_out.printf("elrs write 0x%x\n",crsfPacket[2]);
+  
+  duplex_set_TX();
+  
   elrs.write(crsfPacket, size);
   elrs.flush();
   //if (add_delay>0)
@@ -649,7 +620,7 @@ void CRSF_ping_devices() {
 
 void add_param(uint8_t *buffer, uint8_t num_bytes) {
   // abort if wrong device, or not enough buffer space
-  //db_out.printf("add_param:%u:%u:0x%x\n",buffer[3],crsf_devices[0].number_of_params,crsf_devices[device_idx].address);
+  db_out.printf("add_param:%u:%u:0x%x\n",buffer[3],crsf_devices[0].number_of_params,crsf_devices[device_idx].address);
   //CRSF_ADDRESS_CRSF_TRANSMITTER 
   if (buffer[2] != crsf_devices[device_idx].address
        || ((int)((sizeof recv_param_buffer) - (recv_param_ptr - recv_param_buffer)) < (num_bytes-4))) {
@@ -660,6 +631,7 @@ void add_param(uint8_t *buffer, uint8_t num_bytes) {
         db_out.println(recv_param_ptr);
         return;
     }
+
     memcpy(recv_param_ptr, buffer+5, num_bytes-5);
     recv_param_ptr += num_bytes - 5;
 
@@ -671,6 +643,8 @@ void add_param(uint8_t *buffer, uint8_t num_bytes) {
             return;
         } else {
             next_chunk += 1;
+            db_out.printf("next chunk %u:%u\n",next_chunk,next_param);
+
             CRSF_read_param(crsfCmdPacket,next_param, next_chunk);
             elrsWrite(crsfCmdPacket,8,20000);
 
@@ -688,14 +662,14 @@ void add_param(uint8_t *buffer, uint8_t num_bytes) {
     }
     menuItems[(int)buffer[3]-1].getParams(recv_param_ptr,buffer[3]);
     //debug
-    //menuItems[buffer[3]-1].displayInfo();
+    menuItems[buffer[3]-1].displayInfo();
 
 
     recv_param_ptr = recv_param_buffer;
     next_chunk = 0;
     params_loaded = count_params_loaded();
     // read all params when needed
-   /// db_out.printf("pL:%u:%i:%i\n",params_loaded,menu_item_id,submenu_item_id);
+    db_out.printf("params_loaded:%u\n",params_loaded);
     if (params_loaded < crsf_devices[device_idx].number_of_params)
        // && (menu_item_id+submenu_item_id <  crsf_devices[device_idx].number_of_params))
     {
@@ -720,4 +694,47 @@ void add_param(uint8_t *buffer, uint8_t num_bytes) {
        
     next_param = 0; 
     }
+}
+
+uint8_t count_params_loaded() {
+    int i;
+    for (i=0; i < crsf_devices[0].number_of_params; i++) {
+        db_out.printf("count_params_loaded: %i:%u\n",i,crsf_devices[0].number_of_params);
+        if (menuItems[i].id == 0) break;
+    }
+    return i;
+}
+
+void ICACHE_RAM_ATTR duplex_set_RX()
+{
+#ifdef DEBUG_HALF_DUPLEX
+  db_out.printf("rx: %u\n",micros());
+#endif
+  //dbout.printf("set rx\n");
+
+  portDISABLE_INTERRUPTS();
+    ESP_ERROR_CHECK(gpio_set_direction((gpio_num_t)GPIO_PIN_RCSIGNAL_RX, GPIO_MODE_INPUT));
+    gpio_matrix_in((gpio_num_t)GPIO_PIN_RCSIGNAL_RX, U1RXD_IN_IDX, false);
+    gpio_pullup_en((gpio_num_t)GPIO_PIN_RCSIGNAL_RX);
+    gpio_pulldown_dis((gpio_num_t)GPIO_PIN_RCSIGNAL_RX);
+  portENABLE_INTERRUPTS();
+}
+
+void ICACHE_RAM_ATTR duplex_set_TX()
+{
+#ifdef DEBUG_HALF_DUPLEX
+  db_out.printf("tx: %u\n",micros());
+#endif
+  //dbout.printf("set tx\n");
+
+  portDISABLE_INTERRUPTS();
+    ESP_ERROR_CHECK(gpio_set_pull_mode((gpio_num_t)GPIO_PIN_RCSIGNAL_TX, GPIO_FLOATING));
+    ESP_ERROR_CHECK(gpio_set_pull_mode((gpio_num_t)GPIO_PIN_RCSIGNAL_RX, GPIO_FLOATING));
+
+    ESP_ERROR_CHECK(gpio_set_level((gpio_num_t)GPIO_PIN_RCSIGNAL_TX, 1));
+    ESP_ERROR_CHECK(gpio_set_direction((gpio_num_t)GPIO_PIN_RCSIGNAL_TX, GPIO_MODE_OUTPUT));
+    constexpr uint8_t MATRIX_DETACH_IN_HIGH = 0x38; // routes 1 to matrix slot
+    gpio_matrix_in(MATRIX_DETACH_IN_HIGH, U1RXD_IN_IDX, false); // Disconnect RX from all pads
+    gpio_matrix_out((gpio_num_t)GPIO_PIN_RCSIGNAL_TX, U1TXD_OUT_IDX, false, false);
+  portENABLE_INTERRUPTS();
 }

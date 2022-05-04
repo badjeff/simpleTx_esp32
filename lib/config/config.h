@@ -49,7 +49,7 @@ extern int Rudder_OFFSET;
     #define NUM_ELEMS (6 + 8 + 8 + 4 + 1)
 #endif
 
-
+#pragma once
 
 //button bouncer
 extern int testButtonPressed;
@@ -62,10 +62,12 @@ extern bool powerChangeHasRun;
                              //Maybe move this to target_defs.h
 extern char tempstring[TEMPSTRINGLENGTH];
 
-
-static const char *hdr_str_cb(const void *data);
-uint8_t count_params_loaded();
+extern uint32_t clickCurrentMicros;
 
 
-static void crsfdevice_init();
+void crsfdevice_init();
+const char *hdr_str_cb(const void *data);
 void bt_handle(uint8_t value);
+
+
+
