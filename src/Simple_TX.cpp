@@ -117,6 +117,7 @@ void OutputTask(void *pvParameters)
     {
       Oled::setSubMenuItems();
     }
+    vTaskDelay(OUTPUT_TASK_LOOP_DELAY);
   } // end main loop for
 } // end output task
 
@@ -129,9 +130,6 @@ void ElrsTask(void *pvParameters)
     rcChannels[i] = RC_CHANNEL_MIN;
   }
 
-  // uart debug
-  dbout.begin(115200);
-  delay(2000);
   elrs.begin(SERIAL_BAUDRATE, SERIAL_8N1, GPIO_PIN_RCSIGNAL_RX, GPIO_PIN_RCSIGNAL_TX, false, 500);
   dbout.write("starting elrs\n");
   // digitalWrite(DIGITAL_PIN_LED, LOW); //LED ON
@@ -180,14 +178,17 @@ void ElrsTask(void *pvParameters)
 
     } // end button filter to send commands
 
+    vTaskDelay(ELRS_TASK_LOOP_DELAY);
   } // end main loop
 }
 
 void setup()
 {
+  // uart debug
+  dbout.begin(115200);
+  delay(2000);
 
   initGpio();
-  //initUsb();
 
   xTaskCreatePinnedToCore(
       ElrsTask,         /* Task function. */

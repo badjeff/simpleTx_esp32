@@ -2,10 +2,14 @@
 
 #include <Arduino.h>
 
-
-//pins that used for the Joystick
 #if defined(TARGET_ESP32)
 
+  //xTaskDelay main loop, temporary release thread to another task
+  #define ELRS_TASK_LOOP_DELAY    10 // ticks
+  #define OUTPUT_TASK_LOOP_DELAY  250 // ticks
+
+  #define USE_GPIO_INPUT_CH
+  
   #define ANALOG_IN_PIN_ELEVATOR 32
   #define ANALOG_IN_PIN_AILERON 33
   #define ANALOG_IN_PIN_THROTTLE 34
@@ -18,15 +22,46 @@
 
 #elif defined(TARGET_ESP32_S)
 
-  #define ANALOG_IN_PIN_ELEVATOR A2 // gpio3
-  #define ANALOG_IN_PIN_AILERON A3 // gpio4
-  #define ANALOG_IN_PIN_THROTTLE A4 // gpio5
-  #define ANALOG_IN_PIN_RUDDER A5 // gpio6
-  #define ANALOG_IN_PIN_AUX1 A10  // gpio11 - Arm switch
-  #define ANALOG_IN_PIN_AUX2 A11 // gpio12 - Mode switch
-  #define ANALOG_IN_PIN_AUX3 A12  // gpio13
-  #define ANALOG_IN_PIN_AUX4 A13  // gpio14
-  #define VOLTAGE_READ_PIN A0 // gpio0
+  #if defined(TARGET_ESP32_S2)
+    //xTaskDelay main loop, temporary release thread to another task
+    #define ELRS_TASK_LOOP_DELAY    15 // ticks
+    #define OUTPUT_TASK_LOOP_DELAY  500 // ticks
+  #elif defined(TARGET_ESP32_S3)
+    //xTaskDelay main loop, temporary release thread to another task
+    #define ELRS_TASK_LOOP_DELAY    10 // ticks
+    #define OUTPUT_TASK_LOOP_DELAY  250 // ticks
+  #endif
+
+  // #define USE_GPIO_INPUT_CH
+  #define USE_USB_HID_INPUT_CH
+
+  #if defined(USE_GPIO_INPUT_CH)
+
+    #define ANALOG_IN_PIN_ELEVATOR A2 // gpio3
+    #define ANALOG_IN_PIN_AILERON A3 // gpio4
+    #define ANALOG_IN_PIN_THROTTLE A4 // gpio5
+    #define ANALOG_IN_PIN_RUDDER A5 // gpio6
+    #define ANALOG_IN_PIN_AUX1 A10  // gpio11 - Arm switch
+    #define ANALOG_IN_PIN_AUX2 A11 // gpio12 - Mode switch
+    #define ANALOG_IN_PIN_AUX3 A12  // gpio13
+    #define ANALOG_IN_PIN_AUX4 A13  // gpio14
+    #define VOLTAGE_READ_PIN A0 // gpio0
+
+  #elif defined(USE_USB_HID_INPUT_CH)
+
+    #if defined(TARGET_ESP32_S2)
+      #define DAEMON_TASK_LOOP_DELAY  100 // ticks
+      #define CLASS_TASK_LOOP_DELAY   15 // ticks
+      #define DAEMON_TASK_COREID      0
+      #define CLASS_TASK_COREID       0
+    #elif defined(TARGET_ESP32_S3)
+      #define DAEMON_TASK_LOOP_DELAY  50 // ticks
+      #define CLASS_TASK_LOOP_DELAY   6 // ticks
+      #define DAEMON_TASK_COREID      1
+      #define CLASS_TASK_COREID       1
+    #endif
+
+  #endif
 
 #endif
 
