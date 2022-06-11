@@ -46,10 +46,10 @@ void initGpio()
   #endif
 
   #if defined(USE_USB_HID_INPUT_CH)
-    hidBridge.setOnConfigDescriptorReceived( config_desc_cb );
-    hidBridge.setOnDeviceInfoReceived( device_info_cb );
-    hidBridge.setOnHidReportDescriptorReceived( hid_report_descriptor_cb );
-    hidBridge.setOnReportReceived( hid_report_cb );
+    hidBridge.onConfigDescriptorReceived = config_desc_cb;
+    hidBridge.onDeviceInfoReceived = device_info_cb;
+    hidBridge.onHidReportDescriptorReceived = hid_report_descriptor_cb;
+    hidBridge.onReportReceived = hid_report_cb;
     hidBridge.begin();
   #endif
 }
@@ -137,17 +137,20 @@ void hid_report_cb(usb_transfer_t *transfer) {
     //       https://www.microchip.com/forums/m913995.aspx
     //
     unsigned char *const data = (unsigned char *const)(transfer->data_buffer);
-    // for (int i=0; i<transfer->actual_num_bytes && i<11; i++) {
-    //     for (int b = 8; b != -1; b--) printf("%d", (data[i] & (1 << b)) >> b );
-    //     printf(" ");
-    // }
-    // printf("\n");
-    usb_input_ch[0] = data[0] * 16; //map(data[0], 0, 255, 0, 4096);
-    usb_input_ch[1] = data[1] * 16; //map(data[1], 0, 255, 0, 4096);
-    usb_input_ch[2] = data[2] * 16; //map(data[2], 0, 255, 0, 4096);
-    usb_input_ch[3] = data[3] * 16; //map(data[3], 0, 255, 0, 4096);
-    for (int i=0; i<4; i++) dbout.printf("%d ", usb_input_ch[i]);
-    dbout.printf("\n");
+
+    for (int i=0; i<transfer->actual_num_bytes && i<11; i++) {
+        for (int b=0; b<8; b++) dbout.printf("%d", (data[i] & (1 << b)) >> b );
+        printf(" ");
+    }
+    printf("\n");
+
+    // usb_input_ch[0] = data[0] * 16; //map(data[0], 0, 255, 0, 4096);
+    // usb_input_ch[1] = data[1] * 16; //map(data[1], 0, 255, 0, 4096);
+    // usb_input_ch[2] = data[2] * 16; //map(data[2], 0, 255, 0, 4096);
+    // usb_input_ch[3] = data[3] * 16; //map(data[3], 0, 255, 0, 4096);
+    // for (int i=0; i<4; i++) dbout.printf("%d ", usb_input_ch[i]);
+    // dbout.printf("\n");
+    
 }
 
 #endif
